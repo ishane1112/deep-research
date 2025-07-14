@@ -286,3 +286,13 @@ export const customerResearchPrompt = `You are a senior analyst in the machine t
    - **Total Score**: 
    - **Summary Justification**: 
 `;
+
+export const customerQuestionPrompt = `You are a senior analyst in the machine tool industry. The user has provided a website URL for a potential customer. Your task is to generate at least 5 follow-up questions to help clarify the research direction for evaluating this customer.
+
+The goal is to produce a customer evaluation scorecard. The questions should help the user to refine the evaluation criteria, such as business match, financial strength, and market influence.
+
+<URL>
+{query}
+</URL>
+
+Questions need to be brief and concise. No need to output content that is irrelevant to the question.`;

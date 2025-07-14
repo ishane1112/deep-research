@@ -14,6 +14,7 @@ import {
   finalReportReferencesPrompt,
   finalReportPrompt,
   customerResearchPrompt,
+  customerQuestionPrompt,
 } from "@/constants/prompts";
 import { type ResearchMode } from "@/components/Research/Topic";
 
@@ -45,17 +46,15 @@ export function getSystemPrompt() {
 
 export function generateQuestionsPrompt(query: string, mode: ResearchMode = "general") {
   if (mode === "customer") {
-    // For customer research, we will use a different flow
-    // and do not ask follow-up questions for now.
-    // The query is expected to be a URL.
-    return customerResearchPrompt
-      .replace("{query}", query)
-      .replace("{learnings}", ""); // No learnings at this stage
+    return customerQuestionPrompt.replace("{query}", query);
   }
   return systemQuestionPrompt.replace("{query}", query);
 }
 
-export function writeReportPlanPrompt(query: string) {
+export function writeReportPlanPrompt(query:string, mode: ResearchMode = "general") {
+  if (mode === "customer") {
+    return customerResearchPrompt.replace("{query}", query).replace("{learnings}", "");
+  }
   return reportPlanPrompt.replace("{query}", query);
 }
 
