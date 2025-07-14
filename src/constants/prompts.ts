@@ -247,3 +247,42 @@ export const knowledgeGraphPrompt = `Based on the following article, please extr
 5. Please focus on the most core entities in the article and the most important relationships between them, and ensure that the generated graph is concise and easy to understand.
 6. All text content **MUST** be wrapped in \`"\` syntax. (e.g., "Any Text Content")
 7. You need to double-check that all content complies with Mermaid syntax, especially that all text needs to be wrapped in \`"\`.`;
+
+export const customerResearchPrompt = `You are a senior analyst in the machine tool industry. Based on the customer's website and related information provided, complete an evaluation report.
+
+**Task**: Analyze the provided information and generate a structured evaluation report.
+
+**URL**: {query}
+**Research Information**: 
+{learnings}
+
+---
+
+**Evaluation Report**
+
+**1. Identity Recognition**:
+   - Is the company a distributor/agent or an end-user?
+   - **Answer**: 
+
+**2. Business Match (Score 1-10)**:
+   - How relevant is their core business to our products (e.g., fiber laser cutting machines, press brakes, CNC machining centers)?
+   - List their core product lines or services.
+   - **Score**: 
+   - **Reasoning**: 
+
+**3. Financial Strength and Scale Assessment (Score 1-10)**:
+   - Based on their website's "About Us" section, team size, press releases, number of branches, etc., provide a preliminary assessment of their financial strength and scale.
+   - **Score**: 
+   - **Reasoning**: 
+
+**4. Industry Resources Assessment (Score 1-10)**:
+   - Does their website showcase successful customer case studies?
+   - Do they represent other well-known brands, especially our competitors?
+   - **Score**: 
+   - **Reasoning**: 
+
+**5. Overall Cooperation Potential Score (Total 40)**:
+   - Based on the above points, provide a final cooperation potential score.
+   - **Total Score**: 
+   - **Summary Justification**: 
+`;

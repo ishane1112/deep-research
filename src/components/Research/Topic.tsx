@@ -29,6 +29,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import useDeepResearch from "@/hooks/useDeepResearch";
 import useAiProvider from "@/hooks/useAiProvider";
 import useKnowledge from "@/hooks/useKnowledge";
@@ -37,6 +44,8 @@ import { useGlobalStore } from "@/store/global";
 import { useSettingStore } from "@/store/setting";
 import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
+
+export type ResearchMode = "general" | "customer";
 
 const formSchema = z.object({
   topic: z.string().min(2),
@@ -56,6 +65,7 @@ function Topic() {
   } = useAccurateTimer();
   const [isThinking, setIsThinking] = useState<boolean>(false);
   const [openCrawler, setOpenCrawler] = useState<boolean>(false);
+  const [researchMode, setResearchMode] = useState<ResearchMode>("general");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,7 +96,7 @@ function Topic() {
           form.setValue("topic", values.topic);
         }
         setQuestion(values.topic);
-        await askQuestions();
+        await askQuestions(researchMode);
       } finally {
         setIsThinking(false);
         accurateTimerStop();
@@ -160,6 +170,22 @@ function Topic() {
               </FormItem>
             )}
           />
+
+          <FormItem className="mt-2">
+            <FormLabel className="mb-2 text-base font-semibold">
+              Research Mode
+            </FormLabel>
+            <Select value={researchMode} onValueChange={(value) => setResearchMode(value as ResearchMode)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a research mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General Research</SelectItem>
+                <SelectItem value="customer">Customer Research</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormItem>
+
           <FormItem className="mt-2">
             <FormLabel className="mb-2 text-base font-semibold">
               {t("knowledge.localResourceTitle")}

@@ -12,7 +12,10 @@ import { useTaskStore } from "@/store/task";
 import { useHistoryStore } from "@/store/history";
 import { useSettingStore } from "@/store/setting";
 import { useKnowledgeStore } from "@/store/knowledge";
-import { outputGuidelinesPrompt } from "@/constants/prompts";
+import {
+  outputGuidelinesPrompt,
+  customerResearchPrompt,
+} from "@/constants/prompts";
 import {
   getSystemPrompt,
   generateQuestionsPrompt,
@@ -29,6 +32,7 @@ import { isNetworkingModel } from "@/utils/model";
 import { ThinkTagStreamProcessor, removeJsonMarkdown } from "@/utils/text";
 import { parseError } from "@/utils/error";
 import { pick, flat, unique } from "radash";
+import { type ResearchMode } from "@/components/Research/Topic";
 
 type ProviderOptions = Record<string, Record<string, JSONValue>>;
 type Tools = Record<string, Tool>;
@@ -57,16 +61,26 @@ function useDeepResearch() {
   const { search } = useWebSearch();
   const [status, setStatus] = useState<string>("");
 
-  async function askQuestions() {
+  async function askQuestions(mode: ResearchMode = "general") {
     const { question } = useTaskStore.getState();
     const { thinkingModel } = getModel();
     setStatus(t("research.common.thinking"));
+
+    if (mode === 'customer') {
+      taskStore.updateReportPlan(customerResearchPrompt.replace('{query}', question).replace('{learnings}', ''));
+      const queries: SearchTask[] = [{ query: question, researchGoal: "Crawl the content of the customer's website.", state: 'unprocessed', learning: '', sources: [], images: [] }];
+      taskStore.update(queries);
+      await runSearchTask(queries);
+      await writeFinalReport(mode);
+      return;
+    }
+
     const thinkTagStreamProcessor = new ThinkTagStreamProcessor();
     const result = streamText({
       model: await createModelProvider(thinkingModel),
       system: getSystemPrompt(),
       prompt: [
-        generateQuestionsPrompt(question),
+        generateQuestionsPrompt(question, mode),
         getResponseLanguagePrompt(),
       ].join("\n\n"),
       experimental_transform: smoothTextStream(smoothTextStreamType),
@@ -488,7 +502,7 @@ function useDeepResearch() {
     }
   }
 
-  async function writeFinalReport() {
+  async function writeFinalReport(mode: ResearchMode = "general") {
     const { citationImage, references } = useSettingStore.getState();
     const {
       reportPlan,
@@ -516,22 +530,27 @@ function useDeepResearch() {
     );
     const enableCitationImage = images.length > 0 && citationImage === "enable";
     const enableReferences = sources.length > 0 && references === "enable";
+
+    const finalReportGenerationPrompt = (mode === 'customer' && learnings.length > 0)
+    ? customerResearchPrompt.replace('{query}', reportPlan.match(/URL:\s*(.*)/)?.[1] || '').replace('{learnings}', learnings.join('\n\n'))
+    : writeFinalReportPrompt(
+        reportPlan,
+        learnings,
+        enableReferences
+          ? sources.map((item) => pick(item, ["title", "url"]))
+          : [],
+        enableCitationImage ? images : [],
+        requirement,
+        enableCitationImage,
+        enableReferences
+      );
+
     const thinkTagStreamProcessor = new ThinkTagStreamProcessor();
     const result = streamText({
       model: await createModelProvider(thinkingModel),
       system: [getSystemPrompt(), outputGuidelinesPrompt].join("\n\n"),
       prompt: [
-        writeFinalReportPrompt(
-          reportPlan,
-          learnings,
-          enableReferences
-            ? sources.map((item) => pick(item, ["title", "url"]))
-            : [],
-          enableCitationImage ? images : [],
-          requirement,
-          enableCitationImage,
-          enableReferences
-        ),
+        finalReportGenerationPrompt,
         getResponseLanguagePrompt(),
       ].join("\n\n"),
       experimental_transform: smoothTextStream(smoothTextStreamType),

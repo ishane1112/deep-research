@@ -13,7 +13,9 @@ import {
   finalReportCitationImagePrompt,
   finalReportReferencesPrompt,
   finalReportPrompt,
+  customerResearchPrompt,
 } from "@/constants/prompts";
+import { type ResearchMode } from "@/components/Research/Topic";
 
 export function getSERPQuerySchema() {
   return z
@@ -41,7 +43,15 @@ export function getSystemPrompt() {
   return systemInstruction.replace("{now}", new Date().toISOString());
 }
 
-export function generateQuestionsPrompt(query: string) {
+export function generateQuestionsPrompt(query: string, mode: ResearchMode = "general") {
+  if (mode === "customer") {
+    // For customer research, we will use a different flow
+    // and do not ask follow-up questions for now.
+    // The query is expected to be a URL.
+    return customerResearchPrompt
+      .replace("{query}", query)
+      .replace("{learnings}", ""); // No learnings at this stage
+  }
   return systemQuestionPrompt.replace("{query}", query);
 }
 
