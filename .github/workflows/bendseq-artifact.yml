@@ -1,0 +1,20 @@
+name: Bend Sequence Delivery Artifact
+on:
+  push:
+    branches:
+      - bendseq-artifact-transfer-20261015
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download bilingual delivery
+        run: curl -L --fail --retry 3 -o Bend-Sequence-Simulation-Bilingual-Delivery.zip https://github.com/ishane1112/deep-research/releases/download/bend-sequence-simulation-20261015-v1/Bend-Sequence-Simulation-Bilingual-Delivery.zip
+      - name: Upload delivery artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bend-sequence-simulation-bilingual-delivery
+          path: Bend-Sequence-Simulation-Bilingual-Delivery.zip
+          if-no-files-found: error
+          retention-days: 1
